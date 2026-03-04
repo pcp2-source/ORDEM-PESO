@@ -1,128 +1,78 @@
-import React, { useState } from 'react';
-import { Save, User, Package, AlertCircle, MessageSquare, Factory, Calendar, Hash } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { 
+  LayoutDashboard, PlusCircle, ListTodo, Search, Menu, X, Loader2, BrainCircuit,
+  Settings, Table as TableIcon, Factory, UserCheck, Scale, Compass,
+  History as HistoryIcon, Lock, LogIn, LogOut, ShieldAlert, Eye, EyeOff,
+  KeyRound, ShieldCheck
+} from 'lucide-react';
+import { ProductionOrder, OrderStatus, Priority, SystemUser, SystemConfig, WhatsappContact, ProductionSector, ProductionSubSector, AuditEntry, SheetMaterial, TubeRoundMaterial, MetalonSquareMaterial, MetalonRectMaterial, LoadHistoryEntry, EngineeringPart } from './types';
 
-const NewOrderView = () => {
+// IMPORTAÇÃO CORRIGIDA
+import DashboardView from './components/DashboardView';
+import NewOrderView from './components/NewOrderView'; 
+import OrderListView from './components/OrderListView';
+import PieceOrderFormView from './components/PieceOrderFormView';
+import SettingsView from './components/SettingsView';
+import WeightCalculatorView from './components/WeightCalculatorView';
+import EngineeringRegistryView from './components/EngineeringRegistryView';
+import HistoryView from './components/HistoryView';
+
+const SoAcoLogo = ({ light = false, large = false }) => (
+  <div className="flex items-center gap-2 select-none">
+    <div className={`flex items-baseline font-black italic tracking-tighter ${large ? 'text-5xl' : 'text-2xl'}`}>
+      <span className={light ? 'text-white' : 'text-[#002855]'}>SÓ</span>
+      <span className="text-[#FFB800]">AÇO</span>
+    </div>
+  </div>
+);
+
+const App: React.FC = () => {
+  const [activeTab, setActiveTab] = useState('dashboard');
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+
+  // ... (mantenha os outros estados de ordens, setores, etc, que já existem no seu arquivo original)
+
   return (
-    <div className="animate-in fade-in slide-in-from-bottom-4 duration-700">
-      {/* TÍTULO DA ABA */}
-      <div className="flex items-center gap-4 mb-8">
-        <div className="h-1.5 w-12 bg-[#FFB800] rounded-full"></div>
-        <h2 className="text-3xl font-black text-[#002855] italic uppercase tracking-tighter">
-          Nova Ordem de Produção
-        </h2>
-      </div>
+    <div className="flex h-screen bg-slate-50 font-sans text-slate-900 overflow-hidden">
+      {/* Sidebar */}
+      <aside className={`${isSidebarCollapsed ? 'w-20' : 'w-72'} bg-[#002855] transition-all duration-300 flex flex-col z-20 shadow-2xl`}>
+        <div className="p-6 flex items-center justify-between">
+          {!isSidebarCollapsed && <SoAcoLogo light />}
+          <button onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)} className="text-[#FFB800] hover:bg-white/10 p-2 rounded-xl">
+            {isSidebarCollapsed ? <Menu /> : <X />}
+          </button>
+        </div>
 
-      {/* CARD PRINCIPAL - FUNDO BRANCO ARREDONDADO */}
-      <div className="bg-white p-10 rounded-[3rem] border border-slate-100 shadow-2xl">
-        <form className="space-y-8">
+        <nav className="flex-1 px-3 space-y-2 overflow-y-auto custom-scrollbar">
+          <NavItem icon={<LayoutDashboard />} label="Painel Geral" active={activeTab === 'dashboard'} collapsed={isSidebarCollapsed} onClick={() => setActiveTab('dashboard')} />
+          <NavItem icon={<PlusCircle />} label="Nova OP" active={activeTab === 'new'} collapsed={isSidebarCollapsed} onClick={() => setActiveTab('new')} />
+          <NavItem icon={<ListTodo />} label="Ordens Ativas" active={activeTab === 'list'} collapsed={isSidebarCollapsed} onClick={() => setActiveTab('list')} />
+          <NavItem icon={<Scale />} label="Calculadora" active={activeTab === 'calc'} collapsed={isSidebarCollapsed} onClick={() => setActiveTab('calc')} />
+        </nav>
+      </aside>
+
+      {/* Main Content */}
+      <main className="flex-1 flex flex-col min-w-0 overflow-hidden relative">
+        <div className="flex-1 overflow-y-auto p-8 custom-scrollbar">
+          {activeTab === 'dashboard' && <DashboardView orders={[]} sectors={[]} subSectors={[]} users={[]} />}
           
-          {/* GRID PRINCIPAL - 2 COLUNAS NO PC */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            
-            {/* CLIENTE */}
-            <div className="space-y-3">
-              <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-2 flex items-center gap-2">
-                <User size={12} className="text-[#FFB800]" /> Cliente / Destino
-              </label>
-              <input 
-                type="text" 
-                placeholder="NOME DO CLIENTE OU PROJETO"
-                className="w-full p-5 bg-slate-50 border-2 border-transparent rounded-2xl outline-none focus:border-[#FFB800] focus:bg-white transition-all font-bold text-[#002855] uppercase"
-              />
-            </div>
-
-            {/* PRODUTO */}
-            <div className="space-y-3">
-              <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-2 flex items-center gap-2">
-                <Package size={12} className="text-[#FFB800]" /> Descrição do Produto
-              </label>
-              <input 
-                type="text" 
-                placeholder="EX: VIGA U 6 POLEGADAS"
-                className="w-full p-5 bg-slate-50 border-2 border-transparent rounded-2xl outline-none focus:border-[#FFB800] focus:bg-white transition-all font-bold text-[#002855] uppercase"
-              />
-            </div>
-
-            {/* QUANTIDADE E UNIDADE (Lado a Lado) */}
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-3">
-                <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-2 flex items-center gap-2">
-                  <Hash size={12} className="text-[#FFB800]" /> Qtd
-                </label>
-                <input 
-                  type="number" 
-                  defaultValue="1"
-                  className="w-full p-5 bg-slate-50 border-2 border-transparent rounded-2xl font-bold text-[#002855]"
-                />
-              </div>
-              <div className="space-y-3">
-                <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-2">Unidade</label>
-                <select className="w-full p-5 bg-slate-50 border-2 border-transparent rounded-2xl font-bold text-[#002855] appearance-none cursor-pointer">
-                  <option>Unidades (Pç)</option>
-                  <option>Peso (Kg)</option>
-                  <option>Metros (m)</option>
-                </select>
-              </div>
-            </div>
-
-            {/* PRAZO DE ENTREGA */}
-            <div className="space-y-3">
-              <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-2 flex items-center gap-2">
-                <Calendar size={12} className="text-[#FFB800]" /> Prazo de Entrega
-              </label>
-              <input 
-                type="date" 
-                className="w-full p-5 bg-slate-50 border-2 border-transparent rounded-2xl font-bold text-[#002855] uppercase cursor-pointer"
-              />
-            </div>
-
-            {/* SETOR RESPONSÁVEL */}
-            <div className="space-y-3">
-              <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-2 flex items-center gap-2">
-                <Factory size={12} className="text-[#FFB800]" /> Setor Responsável
-              </label>
-              <select className="w-full p-5 bg-slate-50 border-2 border-transparent rounded-2xl font-bold text-[#002855] appearance-none cursor-pointer">
-                <option value="">SELECIONE O SETOR</option>
-                <option>CORTE E DOBRA</option>
-                <option>SOLDA / MONTAGEM</option>
-                <option>PINTURA</option>
-                <option>EXPEDIÇÃO</option>
-              </select>
-            </div>
-
-            {/* NÍVEL DE URGÊNCIA */}
-            <div className="space-y-3">
-              <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-2 flex items-center gap-2">
-                <AlertCircle size={12} className="text-[#FFB800]" /> Nível de Urgência
-              </label>
-              <select className="w-full p-5 bg-slate-50 border-2 border-transparent rounded-2xl font-bold text-[#002855] appearance-none cursor-pointer">
-                <option value="LOW">BAIXA</option>
-                <option value="MEDIUM" selected>NORMAL</option>
-                <option value="HIGH">ALTA</option>
-                <option value="URGENT">URGENTE</option>
-              </select>
-            </div>
-          </div>
-
-          {/* BOTÕES IGUAIS AO PRINT */}
-          <div className="flex flex-col md:flex-row items-stretch gap-5 pt-8 border-t border-slate-50">
-            <button 
-              type="button"
-              className="flex-1 bg-white border-2 border-[#002855] text-[#002855] hover:bg-slate-50 font-black uppercase tracking-widest py-5 px-8 rounded-2xl flex items-center justify-center gap-3 transition-all active:scale-95 shadow-lg shadow-slate-100"
-            >
-              <Save className="w-6 h-6" /> REGISTRAR ORDEM
-            </button>
-            <button 
-              type="button"
-              className="flex-1 bg-[#25D366] hover:bg-[#128C7E] text-white font-black uppercase tracking-widest py-5 px-8 rounded-2xl flex items-center justify-center gap-3 transition-all shadow-xl active:scale-95"
-            >
-              <MessageSquare className="w-6 h-6" /> REGISTRAR + WHATSAPP
-            </button>
-          </div>
-        </form>
-      </div>
+          {/* CHAMADA CORRIGIDA AQUI */}
+          {activeTab === 'new' && <NewOrderView />}
+          
+          {activeTab === 'list' && <OrderListView />}
+          {activeTab === 'calc' && <WeightCalculatorView activeUser={null} />}
+        </div>
+      </main>
     </div>
   );
 };
 
-export default NewOrderView;
+interface NavItemProps { icon: React.ReactNode; label: string; active: boolean; collapsed: boolean; onClick: () => void; }
+const NavItem: React.FC<NavItemProps> = ({ icon, label, active, collapsed, onClick }) => (
+  <button onClick={onClick} className={`w-full flex items-center gap-3 p-3.5 rounded-xl transition-all duration-300 ${active ? 'bg-[#FFB800] text-[#001a35] font-black shadow-lg shadow-[#FFB800]/20' : 'text-slate-400 hover:bg-white/5 hover:text-white'} ${collapsed ? 'justify-center' : ''}`}>
+    <div className={active ? 'text-[#001a35]' : 'text-[#FFB800]'}>{icon}</div>
+    {!collapsed && <span className="text-xs uppercase tracking-widest">{label}</span>}
+  </button>
+);
+
+export default App;
